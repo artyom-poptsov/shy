@@ -1,0 +1,48 @@
+* shy
+  A (hopefully) handy tool for inspecting bash scripts.
+
+  The inspiration for such a tool partly comes from =guild= program
+  that is shipped with [[https://www.gnu.org/software/guile/][GNU Guile]].
+
+** Usage
+
+*** Print script commentary
+    A script commentary is a part of the script between those strings:
+#+BEGIN_EXAMPLE
+### Commentary:
+
+# (Commentary)
+
+### Code:
+#+END_EXAMPLE
+
+    You can print this section as follows:
+#+BEGIN_EXAMPLE
+$ shy commentary <script>
+$ shy c <script>            # Shorthand
+#+END_EXAMPLE
+
+*** Print script copyright
+    Print copyright section from a script:
+#+BEGIN_EXAMPLE
+$ shy copyright <script>
+$ shy C <script>            # Shorthand
+#+END_EXAMPLE
+
+*** Print dependencies
+    Print script dependencies, that is, scripts that are sourced in
+    the given script:
+#+BEGIN_EXAMPLE
+$ shy deps <script>
+$ shy d <script>            # Shorthand
+#+END_EXAMPLE
+
+*** Inspect a script
+    *NOTE* that this is HIGHLY experimental feature.
+
+    Inspect a script for potentially problematic and/or obsolete
+    things:
+#+BEGIN_EXAMPLE
+$ shy inspect <script>
+$ shy i <script>            # Shorthand
+#+END_EXAMPLE

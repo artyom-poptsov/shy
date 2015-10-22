@@ -1,0 +1,214 @@
+#!/bin/bash
+
+### shy -- A handy tool to inspect Bash scripts.
+
+# Copyright (C) 2015 Artyom V. Poptsov <poptsov.artyom@gmail.com>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+### Commentary:
+
+# A handy tool to inspect Bash scripts.
+#
+# Requirements:
+#   - awk
+#   - sed
+#   - realpath
+#   - grep
+
+### Code:
+
+# Print commentary section from a FILE.
+#
+# Syntax:
+#   print_commentary_section file
+print_commentary_section() {
+    local file=$1
+    awk '/^### Commentary\:/{flag=1; next}/^### Code\:/{flag=0}flag' $file
+}
+
+# Print copyright section from a FILE.
+#
+# Syntax:
+#   print_copyright_section file
+print_copyright_section() {
+    local file=$1
+    awk '/^# Copyright /{flag=1}/^### Commentary\:/{flag=0}flag' $file
+}
+
+### deps
+
+# Get dependencies from a FILE.
+#
+# Syntax:
+#   get_deps file
+get_deps() {
+    local file=$1
+    grep -E "^\. .*|^source .*" $file | sed -r 's/^.* (.*)/\1/'
+}
+# Print script dependencies on other scripts that are sourced.
+#
+# Syntax:
+#   print_deps file [indent]
+print_deps() {
+    local file=$1
+    local indent=$([ "$2" = "" ] && echo 0 || echo $2)
+    local IFS=$'\n'
+    local deps dep
+
+    printf "%${indent}s%s\n" '' $file
+
+    local filepath=$([ -e "$file" ] && realpath "$file" || echo "")
+
+    if [ ! -z "$filepath" ]; then
+        deps=($(get_deps $file))
+
+        cd $(dirname $file)
+
+        for ((i = 0; i < ${#deps[*]}; ++i)); do
+            dep=${deps[$i]}
+            echo "$(print_deps $dep $((indent + 2)))"
+        done
+    fi
+}
+
+### inspect
+# Inspect bash scripts for potentially problematic things.
+
+# Print alert message.
+#
+# Syntax:
+#   alert str1 str2 ...
+alert() {
+    echo -e "\033[0;37m$@\033[0m"
+}
+
+# Inspect a FILE for backticks.
+#
+# Rationale: <http://mywiki.wooledge.org/BashFAQ/082>
+#
+# Syntax:
+#   inspect_backticks file
+inspect_backticks() {
+    local file=$1
+    local IFS=$'\n'
+    local matches=($(grep -n '`.*`' $file))
+    local matches_count=${#matches[*]}
+    if [ ! "$matches_count" = "0" ]; then
+        alert "Backticks: found ${matches_count} match(es)"\
+              "-- <http://mywiki.wooledge.org/BashFAQ/082>"
+        for ((i = 0; i < ${#matches[*]}; ++i)); do
+            printf '\t%s\n' ${matches[$i]}
+        done
+        return 1
+    else
+        return 0
+    fi
+}
+
+# Inspect a FILE for mixed usage of 'function' keyword and
+# parentheses.
+#
+# Rationale: <http://wiki.bash-hackers.org/scripting/obsolete>
+#
+# Syntax:
+#   inspect_function_keywords file
+inspect_function_keywords() {
+    local file=$1
+    local IFS=$'\n'
+    local matches=($(grep -n 'function .*\(\).*{' $file))
+    local matches_count=${#matches[*]}
+    if [ ! "$matches_count" = "0" ]; then
+        alert "'function' keyword is used along with parentheses:" \
+              "found ${matches_count} match(es)"\
+              "-- <http://wiki.bash-hackers.org/scripting/obsolete>"
+        for ((i = 0; i < ${#matches[*]}; ++i)); do
+            printf '\t%s\n' ${matches[$i]}
+        done
+        return 1
+    else
+        return 0
+    fi
+}
+
+# Inspect a FILE.
+#
+# Syntax:
+#   inspect file
+inspect() {
+    local file=$1
+    inspect_backticks $file
+    inspect_function_keywords $file
+}
+
+###
+
+# Print help message and exit.
+#
+# Syntax:
+#   print_help_and_exit
+print_help_and_exit() {
+    cat <<EOF
+Usage: shy command [args]
+
+Commands:
+  help, h        Print this message and exit.
+  commentary, c  Print commentary.
+  copyright, C   Print copyright.
+  deps, d        Print dependency tree of scripts that are sourced from
+                 the script.
+  inspect, i     Inspect the script for issues
+                 (NOTE: this is HIGHLY experimental feature)
+EOF
+}
+
+###
+
+# Entry point of the program.
+#
+# Syntax:
+#   main
+main() {
+    local command=$1
+
+    [ -z "$command" ] && print_help_and_exit
+
+    case $command in
+        commentary | c)
+            shift 1
+            print_commentary_section $*
+            ;;
+        copyright | C)
+            shift 1
+            print_copyright_section $*
+            ;;
+        deps | d)
+            shift 1
+            print_deps $*
+            ;;
+        inspect | i)
+            shift 1
+            inspect $*
+            ;;
+        help | h)
+            print_help_and_exit
+            ;;
+    esac
+
+    exit 0
+}
+
+main $*
+
+### shy ends here.
