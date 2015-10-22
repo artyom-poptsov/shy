@@ -92,6 +92,18 @@ curly_brackets_var_p() {
         && echo true || echo false
 }
 
+# Escape special chars in STRING so it can be included safely in sed
+# pattern.
+#
+# Pattern is taken from
+# <http://backreference.org/2009/12/09/using-shell-variables-in-sed/>
+#
+# Syntax:
+#   sedify string
+sedify() {
+    echo "$1" | sed 's/[[\.*/]/\\&/g; s/$$/\\&/; s/^^/\\&/'
+}
+
 # Try to expand variables contained in a STRING path using a FILE to
 # look up the variables.
 #
@@ -101,13 +113,14 @@ expand_vars() {
     local file="$1"
     local string="$2"
     local var_name var_value result
-    local home=$(echo $HOME | sed 's/[[\.*/]/\\&/g; s/$$/\\&/; s/^^/\\&/')
+    local home=$(sedify "$HOME")
 
     if [ $(plain_var_p "$string") = true ]; then
         var_name=$(echo "$string" | sed -r 's/\$\{([A-Za-z]+)\}.*/\1/')
 
-        var_value=$(get_var_value "$file" "$var_name" \
-                           | sed 's/[[\.*/]/\\&/g; s/$$/\\&/; s/^^/\\&/')
+        var_value=$(get_var_value "$file" "$var_name")
+        var_value=$(sedify "$var_value")
+
         result=$(echo "$string" \
                         | sed -r 's/^\$\{.*\}(.*)/'${var_value}'\1/')
 
@@ -118,8 +131,10 @@ expand_vars() {
         return 0
     elif [ $(curly_brackets_var_p "$string") = true ]; then
         var_name=$(echo "$string" | sed -r 's/\$([A-Za-z]+)\/.*/\1/')
-        var_value=$(get_var_value "$file" "$var_name" \
-                           | sed 's/[[\.*/]/\\&/g; s/$$/\\&/; s/^^/\\&/')
+
+        var_value=$(get_var_value "$file" "$var_name")
+        var_value=$(sedify "$var_value")
+
         result=$(echo "$string" \
                         | sed -r 's/.*\$[A-Za-z]+(\/.*)/'${var_value}'\1/')
 
