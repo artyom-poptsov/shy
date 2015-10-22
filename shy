@@ -112,41 +112,28 @@ sedify() {
 expand_vars() {
     local file="$1"
     local string="$2"
-    local var_name var_value result
+    local result="$string"
     local home=$(sedify "$HOME")
+    local var_name var_value
 
     if [ $(plain_var_p "$string") = true ]; then
         var_name=$(echo "$string" | sed -r 's/\$\{([A-Za-z]+)\}.*/\1/')
+        var_value=$(sedify $(get_var_value "$file" "$var_name"))
 
-        var_value=$(get_var_value "$file" "$var_name")
-        var_value=$(sedify "$var_value")
-
-        result=$(echo "$string" \
-                        | sed -r 's/^\$\{.*\}(.*)/'${var_value}'\1/')
-
-        # Expand home path
-        result=$(echo "$result" | sed -r "s/^~(.*)/${home}\1/")
-
-        echo "$result"
-        return 0
+        result=$(echo "$string" | sed -r 's/^\$\{.*\}(.*)/'${var_value}'\1/')
     elif [ $(curly_brackets_var_p "$string") = true ]; then
         var_name=$(echo "$string" | sed -r 's/\$([A-Za-z]+)\/.*/\1/')
-
-        var_value=$(get_var_value "$file" "$var_name")
-        var_value=$(sedify "$var_value")
+        var_value=$(sedify $(get_var_value "$file" "$var_name"))
 
         result=$(echo "$string" \
                         | sed -r 's/.*\$[A-Za-z]+(\/.*)/'${var_value}'\1/')
 
-        # Expand home path
-        result=$(echo "$result" | sed -r "s/^~(.*)/${home}\1/")
-
-        echo "$result"
-        return 0
-    else
-        echo "$string"
-        return 1
     fi
+
+    # Expand home path
+    result=$(echo "$result" | sed -r "s/^~(.*)/${home}\1/")
+
+    echo "$result"
 }
 
 # Try to expand a FILE path if contains variables and/or '~'.
