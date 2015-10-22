@@ -142,6 +142,30 @@ inspect_function_keywords() {
     fi
 }
 
+# Inspect a FILE for $[EXPRESSION] syntax.
+#
+# Rationale: <http://wiki.bash-hackers.org/scripting/obsolete>
+#
+# Syntax:
+#   inspect_square_brackets_expression file
+inspect_square_brackets_expression() {
+    local file=$1
+    local IFS=$'\n'
+    local matches=($(grep -n '\$\[[^\[].*\]' $file))
+    local matches_count=${#matches[*]}
+    if [ ! "$matches_count" = "0" ]; then
+        alert "\$[EXPRESSION]:" \
+              "found ${matches_count} match(es)"\
+              "-- <http://wiki.bash-hackers.org/scripting/obsolete>"
+        for ((i = 0; i < ${#matches[*]}; ++i)); do
+            printf '\t%s\n' ${matches[$i]}
+        done
+        return 1
+    else
+        return 0
+    fi
+}
+
 # Inspect a FILE.
 #
 # Syntax:
@@ -150,6 +174,7 @@ inspect() {
     local file=$1
     inspect_backticks $file
     inspect_function_keywords $file
+    inspect_square_brackets_expression $file
 }
 
 ###
