@@ -156,8 +156,8 @@ expand_path() {
 # Syntax:
 #   print_deps file [indent]
 print_deps() {
-    local file=$1
-    local indent=$([ "$2" = "" ] && echo 0 || echo $2)
+    local file="$1"
+    local indent=$([ "$2" = "" ] && echo 0 || echo "$2")
     local IFS=$'\n'
     local deps dep
 
@@ -166,7 +166,7 @@ print_deps() {
     local filepath=$([ -e "$file" ] && realpath "$file" || echo "")
 
     if [ ! -z "$filepath" ]; then
-        deps=($(get_deps $file))
+        deps=($(get_deps "$file"))
 
         cd "$(dirname "$file")"
 
