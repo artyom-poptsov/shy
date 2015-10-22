@@ -161,14 +161,14 @@ print_deps() {
     local IFS=$'\n'
     local deps dep
 
-    printf "%${indent}s%s\n" '' $file
+    printf "%${indent}s%s\n" '' "$file"
 
     local filepath=$([ -e "$file" ] && realpath "$file" || echo "")
 
     if [ ! -z "$filepath" ]; then
         deps=($(get_deps $file))
 
-        cd $(dirname $file)
+        cd "$(dirname "$file")"
 
         for ((i = 0; i < ${#deps[*]}; ++i)); do
             dep=$(expand_path "$filepath" "${deps[$i]}")
