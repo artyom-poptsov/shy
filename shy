@@ -57,6 +57,93 @@ get_deps() {
     local file=$1
     grep -E "^\. .*|^source .*" $file | sed -r 's/^.* (.*)/\1/'
 }
+
+# Get value of a variable VAR_NAME from a FILE.
+#
+# Syntax:
+#   get_var_value file var_name
+get_var_value() {
+    local file="$1"
+    local var_name="$2"
+    grep "^$var_name" "$file" | sed -r 's/.*=(.*)/\1/'
+}
+
+# Return 'true' if a STRING begins from a plain variable (like
+# '$VAR'), false otherwise.
+#
+# Syntax:
+#   plain_var_p string
+plain_var_p() {
+    echo "$1" | grep -E '^\${.*}' > /dev/null && echo true || echo false
+}
+
+# Return 'true' if a STRING begins from a variable wrapped in curly
+# brackets (like '${VAR}').
+#
+# Syntax:
+#   curly_brackets_var_p string
+curly_brackets_var_p() {
+    echo "$1" | grep -E '^\$[A-Za-z]+\/.*' > /dev/null \
+        && echo true || echo false
+}
+
+# Try to expand variables contained in a STRING path using a FILE to
+# look up the variables.
+#
+# Syntax:
+#   expand_vars file string
+expand_vars() {
+    local file="$1"
+    local string="$2"
+    local var_name var_value result
+    local home=$(echo $HOME | sed 's/[[\.*/]/\\&/g; s/$$/\\&/; s/^^/\\&/')
+
+    if [ $(plain_var_p "$string") = true ]; then
+        var_name=$(echo "$string" | sed -r 's/\$\{([A-Za-z]+)\}.*/\1/')
+
+        var_value=$(get_var_value "$file" "$var_name" \
+                           | sed 's/[[\.*/]/\\&/g; s/$$/\\&/; s/^^/\\&/')
+        result=$(echo "$string" \
+                        | sed -r 's/^\$\{.*\}(.*)/'${var_value}'\1/')
+
+        # Expand home path
+        result=$(echo "$result" | sed -r "s/^~(.*)/${home}\1/")
+
+        echo "$result"
+        return 0
+    elif [ $(curly_brackets_var_p "$string") = true ]; then
+        var_name=$(echo "$string" | sed -r 's/\$([A-Za-z]+)\/.*/\1/')
+        var_value=$(get_var_value "$file" "$var_name" \
+                           | sed 's/[[\.*/]/\\&/g; s/$$/\\&/; s/^^/\\&/')
+        result=$(echo "$string" \
+                        | sed -r 's/.*\$[A-Za-z]+(\/.*)/'${var_value}'\1/')
+
+        # Expand home path
+        result=$(echo "$result" | sed -r "s/^~(.*)/${home}\1/")
+
+        echo "$result"
+        return 0
+    else
+        echo "$string"
+        return 1
+    fi
+}
+
+# Try to expand a FILE path if contains variables and/or '~'.
+#
+# Syntax:
+#   expand_path file dep
+expand_path() {
+    local file="$1"
+    local dep="$2"
+
+    if [ $(echo "$dep" | grep "^\$.*" > /dev/null; echo $?) = "0" ]; then
+        echo $(expand_vars "$file" "$dep")
+    else
+        echo "$dep"
+    fi
+}
+
 # Print script dependencies on other scripts that are sourced.
 #
 # Syntax:
@@ -77,8 +164,9 @@ print_deps() {
         cd $(dirname $file)
 
         for ((i = 0; i < ${#deps[*]}; ++i)); do
-            dep=${deps[$i]}
-            echo "$(print_deps $dep $((indent + 2)))"
+            dep=$(expand_path "$filepath" "${deps[$i]}")
+            # echo $dep >&2
+            echo "$(print_deps "$dep" $((indent + 2)))"
         done
     fi
 }
