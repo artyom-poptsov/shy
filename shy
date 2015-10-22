@@ -29,13 +29,18 @@
 
 ### Code:
 
+SECTION_COMMENTARY="### Commentary:"
+SECTION_CODE="### Code:"
+
 # Print commentary section from a FILE.
 #
 # Syntax:
 #   print_commentary_section file
 print_commentary_section() {
     local file=$1
-    awk '/^### Commentary\:/{flag=1; next}/^### Code\:/{flag=0}flag' $file
+
+    awk "/^${SECTION_COMMENTARY}/{flag=1; next}/^${SECTION_CODE}/{flag=0}flag" \
+        $file
 }
 
 # Print copyright section from a FILE.
@@ -44,7 +49,7 @@ print_commentary_section() {
 #   print_copyright_section file
 print_copyright_section() {
     local file=$1
-    awk '/^# Copyright /{flag=1}/^### Commentary\:/{flag=0}flag' $file
+    awk "/^# Copyright /{flag=1}/^${SECTION_COMMENTARY}/{flag=0}flag" $file
 }
 
 ### deps
