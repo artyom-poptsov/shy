@@ -34,6 +34,18 @@
             messages))
 
 ;;;
+(define (fsm-for-expression port)
+  (let ((ch (read-char port)))
+    (unless (eof-object? ch)
+      (case ch 
+        ((and (#\f) (#\o) (#\r))
+         (alert "For Deprecated syntax: found"
+                " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n")
+         (fsm-read port))
+        (else
+         (fsm-for-expression port))))))
+
+
 (define (fsm-skip-commentary port)
   (let ((ch (read-char port)))
     (unless (eof-object? ch)
@@ -43,12 +55,12 @@
         (else
          (fsm-skip-commentary port))))))
 
-(define (fsm-check-expression port)
+(define (fsm-bracket-expression port)
   (let ((ch (read-char port)))
-    (unless (case ch ")") 
+    (unless (eof-object? ch) 
       (case ch
-        ((#\$)
-         (alert "Deprecated syntax: found"
+        ((#\])
+         (alert "Bracket Deprecated syntax: found"
                 " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n")
          (fsm-read port))
         (else
@@ -71,8 +83,9 @@
     (unless (eof-object? ch)
       (case ch
         ((#\#)
-         (fsm-check-expression port)
-         (fsm-skip-commentary port))
+         (fsm-bracket-expression port)
+         (fsm-skip-commentary port)
+         (fsm-for-expression port))
         ((#\`)
          (fsm-inspect-backticks port))
         (else
