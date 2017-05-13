@@ -2,8 +2,6 @@
 -e main -s
 !#
 
-<<<<<<< HEAD
-=======
 ;;; shy.scm -- A handy tool to inspect Bash scripts.
 
 ;; Copyright (C) 2016 Artyom V. Poptsov <poptsov.artyom@gmail.com>
@@ -23,24 +21,18 @@
 
 ;;; Commentary:
 
->>>>>>> origin/master
 ;; TODO:
 
 ;;; Code:
 
 (define debug? #t)
 
-<<<<<<< HEAD
 ;;; Alert messages
-=======
-;;;
->>>>>>> origin/master
 
 (define (alert . messages)
   (for-each (lambda (m) (format #t "~a[0;37m~a~a[0m" #\033 m #\033))
             messages))
 
-<<<<<<< HEAD
 ;;; standard reading file
 
 (define (fsm-read port)
@@ -69,20 +61,6 @@
          " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n"))
 
 ;;; skip bash comments
-=======
-;;;
-(define (fsm-for-expression port)
-  (let ((ch (read-char port)))
-    (unless (eof-object? ch)
-      (case ch 
-        ((and (#\f) (#\o) (#\r))
-         (alert "For Deprecated syntax: found"
-                " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n")
-         (fsm-read port))
-        (else
-         (fsm-for-expression port))))))
-
->>>>>>> origin/master
 
 (define (fsm-skip-commentary port)
   (let ((ch (read-char port)))
@@ -93,25 +71,9 @@
         (else
          (fsm-skip-commentary port))))))
 
-<<<<<<< HEAD
 ;;; check two dollar expressions
 
 (define (fsm-inspect-dollar port)
-=======
-(define (fsm-bracket-expression port)
-  (let ((ch (read-char port)))
-    (unless (eof-object? ch) 
-      (case ch
-        ((#\])
-         (alert "Bracket Deprecated syntax: found"
-                " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n")
-         (fsm-read port))
-        (else
-         (fsm-check-expression port))))))
-
-
-(define (fsm-inspect-backticks port)
->>>>>>> origin/master
   (let ((ch (read-char port)))
     (unless (eof-object? ch)
       (case ch
@@ -162,13 +124,6 @@
   (let ((ch (read-char port)))
     (unless (eof-object? ch)
       (case ch
-<<<<<<< HEAD
-=======
-        ((#\#)
-         (fsm-bracket-expression port)
-         (fsm-skip-commentary port)
-         (fsm-for-expression port))
->>>>>>> origin/master
         ((#\`)
          (alert "Backticks found\n"
                 " -- <http://mywiki.wooledge.org/BashFAQ/082>\n")
@@ -183,11 +138,7 @@
   (let ((port (open-input-file file)))
     (fsm-read port)))
 
-<<<<<<< HEAD
 ;;; Help
-=======
-;;;
->>>>>>> origin/master
 
 (define (print-help-and-exit)
   (display "\
