@@ -38,7 +38,7 @@
 (define (fsm-read port)
   (let ((ch (read-char port)))
     (unless (eof-object? ch)
-      (case ch
+      (cond ch
         ((#\#)
          (fsm-skip-commentary port))
         ((or (#\& #\>) (#\> #\&))
@@ -76,10 +76,10 @@
 (define (fsm-inspect-dollar port)
   (let ((ch (read-char port)))
     (unless (eof-object? ch)
-      (case ch
+      (cond ch
         ((#\[)
          (fsm-square-bracket-expression))
-        ((#\{ #\v #\a #\r)
+        (or (#\{) (#\v) (#\a) (#\r))
          (fsm-curly-brace-expression))
         (else
          (when debug?
@@ -158,12 +158,6 @@ Commands:
 ;;; Entry point
 
 (define (main args)
-  ;; (display (cadr args))
-  ;; (newline))
-  ;; (display #\033)
-  ;; (display "[0;37m")
-  ;; (write "\033[0;37mtest\033[0m")
-  ;; (newline)
   (let ((command (cadr args)))
     (cond
      ((or (string=? command "help") (string=? command "h"))
