@@ -41,18 +41,44 @@
       (case ch
         ((#\#)
          (fsm-skip-commentary port))
-        ((#\& #\> #\> #\&)
-         (alert-redirection))
+        ((#\&)
+         (alert-redirection)
+         (fsm-read port))
         ((#\$)
          (fsm-inspect-dollar port))
         ((#\`)
          (fsm-inspect-backticks port))
-        ((#\| #\&)
-         (alert-pipeline-amp))
+        ((#\|)
+         (alert-pipeline-amp)
+         (fsm-read port))
+        ((#\f)
+         (fsm-inspect-function port))
         (else
          (when debug?
            (display ch))
          (fsm-read port))))))
+
+;;; inspect f expression
+
+(define (fsm-f-test port)
+  (let ((ch (read-char port)))
+    (unless (eof-object? ch)
+      (case ch
+        ((#\u)
+         (fsm-function-expression port))
+        ((#\o)
+         (fsm-for-expression port))
+      (else 
+        (testing port))))))
+
+(define (fsm-function-expression port))
+
+(define (fsm-for-expression port)
+  (let ((ch (read-char port)))
+    (if (char=? ch #\r)
+        (alert "Deprecated for syntax found\n"
+               " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n"))
+        (fsm-read port))))
 
 ;;; alert redirection
 
@@ -71,7 +97,7 @@
         (else
          (fsm-skip-commentary port))))))
 
-;;; check two dollar expressions
+;;; check for two dollar expressions
 
 (define (fsm-inspect-dollar port)
   (let ((ch (read-char port)))
