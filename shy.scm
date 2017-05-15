@@ -38,10 +38,10 @@
 (define (fsm-read port)
   (let ((ch (read-char port)))
     (unless (eof-object? ch)
-      (cond ch
+      (case ch
         ((#\#)
          (fsm-skip-commentary port))
-        ((or (#\& #\>) (#\> #\&))
+        ((#\& #\> #\> #\&)
          (alert-redirection))
         ((#\$)
          (fsm-inspect-dollar port))
@@ -76,10 +76,10 @@
 (define (fsm-inspect-dollar port)
   (let ((ch (read-char port)))
     (unless (eof-object? ch)
-      (cond ch
+      (case ch
         ((#\[)
          (fsm-square-bracket-expression))
-        (or (#\{) (#\v) (#\a) (#\r))
+        ((#\{ #\v #\a #\r)
          (fsm-curly-brace-expression))
         (else
          (when debug?
