@@ -42,49 +42,21 @@
         ((#\#)
          (fsm-skip-commentary port))
         ((#\&)
-         (alert-redirection)
-         (fsm-read port))
+         (fsm-check-amp port))
+        ((#\>)
+         (fsm-triangular-bracket port))
         ((#\$)
          (fsm-inspect-dollar port))
+        ((#\|)
+         (pipeline-amp port))
         ((#\`)
          (fsm-inspect-backticks port))
-        ((#\|)
-         (alert-pipeline-amp)
-         (fsm-read port))
         ((#\f)
-         (fsm-inspect-function port))
+         (fsm-f-test port))
         (else
          (when debug?
            (display ch))
          (fsm-read port))))))
-
-;;; inspect f expression
-
-(define (fsm-f-test port)
-  (let ((ch (read-char port)))
-    (unless (eof-object? ch)
-      (case ch
-        ((#\u)
-         (fsm-function-expression port))
-        ((#\o)
-         (fsm-for-expression port))
-      (else 
-        (testing port))))))
-
-(define (fsm-function-expression port))
-
-(define (fsm-for-expression port)
-  (let ((ch (read-char port)))
-    (if (char=? ch #\r)
-        (alert "Deprecated for syntax found\n"
-               " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n"))
-        (fsm-read port))))
-
-;;; alert redirection
-
-(define alert-redirection
-  (alert "Deprecated redirection syntax found\n"
-         " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n"))
 
 ;;; skip bash comments
 
@@ -97,22 +69,93 @@
         (else
          (fsm-skip-commentary port))))))
 
-;;; check for two dollar expressions
+;;; redirection syntax
+
+(define (fsm-check-amp port)
+  (let ((ch (read-char port)))
+    (unless (eof-object? ch)
+      (case ch
+        ((#\>)
+         (alert "Deprecated redirection syntax found\n"
+                " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n"))
+      (else
+        (fsm-read port))))))
+
+;;;
+
+(define (fsm-triangular-bracket port)
+  (let ((ch (read-char port)))
+    (unless (eof-object? ch)    
+      (case ch
+        ((#\&)
+         (fsm-read port))
+        ((#\f)
+         (fsm-triangular-bracket port))
+        ((#\1)
+         (fsm-read port))
+      (else
+        (alert "Deprecated redirection syntax found\n"
+               " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n"))))))
+
+;;; inspect f expression
+
+(define (fsm-f-test port)
+  (let ((ch (read-char port)))
+    (unless (eof-object? ch)
+      (case ch
+        ((#\u)
+         (fsm-function-expression port))
+        ((#\o)
+         (fsm-for-expression port))
+      (else 
+        (fsm-read port))))))
+
+;;; dirty function inspecting (uncomplete)
+
+(define (fsm-function-expression port)
+  (let ((ch (read-char port)))
+    (unless (eof-object? ch)
+      (case ch
+        ((#\n)
+         (fsm-function-expression port))
+        ((#\c)
+         (fsm-function-expression port))
+        ((#\t)
+         (fsm-function-expression port))
+        ((#\i)
+         (fsm-function-expression port))
+        ((#\o)
+         (fsm-function-expression port)
+         (alert "Deprecated function syntax found\n"
+                " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n"))
+      (else 
+        (fsm-read port))))))
+
+;;;
+
+(define (fsm-for-expression port)
+  (let ((ch (read-char port)))
+    (if (char=? ch #\r)
+        (alert "Deprecated for syntax found\n"
+               " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n"))
+        (fsm-read port)))
+
+;;; check for two dollar expressions  (uncomplete)
 
 (define (fsm-inspect-dollar port)
   (let ((ch (read-char port)))
     (unless (eof-object? ch)
       (case ch
         ((#\[)
-         (fsm-square-bracket-expression))
+         (fsm-square-bracket-expression port))
         ((#\{ #\v #\a #\r)
-         (fsm-curly-brace-expression))
+         (fsm-curly-brace-expression port))
         (else
          (when debug?
           (display ch))
          (fsm-read port))))))
 
-;;; if $[EXPRESSION] found
+;;;
 
 (define (fsm-square-bracket-expression port)
   (let ((ch (read-char port)))
@@ -125,7 +168,7 @@
         (else
          (fsm-square-bracket-expression port))))))
 
-;;; if ${var?msg} or ${var:?msg} found
+;;;
 
 (define (fsm-curly-brace-expression port)
   (let ((ch (read-char port)))
@@ -138,11 +181,17 @@
         (else
          (fsm-curly-brace-expression port))))))
 
-;;; alert < comm |& comm > syntax
+;;; pipeline-ampersand inspect
 
-(define alert-pipeline-amp
-  (alert "Pipeline-ampersand deprecated syntax found\n"
-         " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n"))
+(define (pipeline-amp port)
+  (let ((ch (read-char port)))
+    (unless (eof-object? ch) 
+      (case ch
+        ((#\&)
+         ((alert "Pipeline-ampersand deprecated syntax found\n"
+                 " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n")))
+      (else
+        (fsm-read port))))))
 
 ;;; inspect for backticks
 
