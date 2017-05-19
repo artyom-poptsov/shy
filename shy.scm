@@ -2,6 +2,8 @@
 -e main -s
 !#
 
+(use-modules (ice-9 unicode))
+
 ;;; shy.scm -- A handy tool to inspect Bash scripts.
 
 ;; Copyright (C) 2016 Artyom V. Poptsov <poptsov.artyom@gmail.com>
@@ -53,6 +55,8 @@
          (fsm-inspect-backticks port))
         ((#\f)
          (fsm-f-test port))
+        ((#\s)
+         (fsm-error-handling port))
         (else
          (when debug?
            (display ch))
@@ -77,7 +81,7 @@
       (case ch
         ((#\>)
          (alert "Deprecated redirection syntax found\n"
-                " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n"))
+                " -- <http://bit.ly/2r1cCgm>\n"))
       (else
         (fsm-read port))))))
 
@@ -95,7 +99,7 @@
          (fsm-read port))
       (else
         (alert "Deprecated redirection syntax found\n"
-               " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n"))))))
+               " -- <http://bit.ly/2r1cCgm>\n"))))))
 
 ;;; inspect f expression
 
@@ -104,31 +108,34 @@
     (unless (eof-object? ch)
       (case ch
         ((#\u)
-         (fsm-function-expression port))
+         (fsm-function-recognite port))
         ((#\o)
          (fsm-for-expression port))
       (else 
         (fsm-read port))))))
 
-;;; dirty function inspecting (uncomplete)
+;;; dirty function inspecting
 
-(define (fsm-function-expression port)
+(define (fsm-function-recognite port)
   (let ((ch (read-char port)))
     (unless (eof-object? ch)
       (case ch
-        ((#\n)
-         (fsm-function-expression port))
-        ((#\c)
-         (fsm-function-expression port))
-        ((#\t)
-         (fsm-function-expression port))
-        ((#\i)
-         (fsm-function-expression port))
-        ((#\o)
-         (fsm-function-expression port)
-         (alert "Deprecated function syntax found\n"
-                " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n"))
+        ((#\n #\c #\t #\i #\o)
+         (fsm-func-determine port))
       (else 
+        (fsm-read port))))))
+
+;;;
+
+(define (fsm-func-determine port)
+  (let ((ch (read-char port)))
+    (unless (eof-object? ch)
+      (case ch
+        ((#\x0028 #\x0029 #\{ #\})          ;;; parentheses
+         (alert "Deprecated function syntax found\n"
+                " -- <http://bit.ly/2r1cCgm>\n")
+         (fsm-read port))
+      (else
         (fsm-read port))))))
 
 ;;;
@@ -137,7 +144,7 @@
   (let ((ch (read-char port)))
     (if (char=? ch #\r)
         (alert "Deprecated for syntax found\n"
-               " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n"))
+               " -- <http://bit.ly/2r1cCgm>\n"))
         (fsm-read port)))
 
 ;;; check for two dollar expressions  (uncomplete)
@@ -163,7 +170,7 @@
       (case ch
         ((#\])
          (alert "Square bracket deprecated syntax found\n"
-                " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n")
+                " -- <http://bit.ly/2r1cCgm>\n")
          (fsm-read port))
         (else
          (fsm-square-bracket-expression port))))))
@@ -176,7 +183,7 @@
       (case ch
         ((#\})
          (alert "Curly brace deprecated syntax found\n"
-                " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n")
+                " -- <http://bit.ly/2r1cCgm>\n")
          (fsm-read port))
         (else
          (fsm-curly-brace-expression port))))))
@@ -189,7 +196,7 @@
       (case ch
         ((#\&)
          ((alert "Pipeline-ampersand deprecated syntax found\n"
-                 " -- <http://wiki.bash-hackers.org/scripting/obsolete>\n")))
+                 " -- <http://bit.ly/2r1cCgm>\n")))
       (else
         (fsm-read port))))))
 
@@ -201,10 +208,50 @@
       (case ch
         ((#\`)
          (alert "Backticks found\n"
-                " -- <http://mywiki.wooledge.org/BashFAQ/082>\n")
+                " -- <http://bit.ly/2qG43Vl>\n")
          (fsm-read port))
         (else
          (fsm-inspect-backticks port))))))
+
+;;; error handling, set commands
+
+(define (fsm-error-handling port)
+  (let ((ch (read-char port)))
+    (unless (eof-object? ch)
+      (cond 
+        ((eqv? ch #\e)
+         (fsm-error-handling port))
+        ((eqv? ch #\t)
+         (fsm-set-args port))
+      (else 
+        (fsm-read port))))))
+
+;;; alerts
+
+(define (set-handling)
+  (alert "Deprecated error handling syntax found\n"
+         " -- <http://bit.ly/2r1cCgm>\n"))
+
+;;;
+
+(define (fsm-set-args port)
+  (let ((ch (read-char port)))
+    (unless (eof-object? ch)
+      (case ch
+        ((#\e #\u)
+         (set-handling)
+         (fsm-read port))
+        ((#\o)
+         (fsm-o-set-property port))
+      (else 
+        (fsm-read port))))))
+
+;;; set-option determine (uncomp)
+
+(define (fsm-o-set-property port)
+  (let ((ch (read-char port)))
+    (unless (eof-object? ch)
+      (fsm-read port))))
 
 ;;; Commands
 
