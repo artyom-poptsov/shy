@@ -39,6 +39,16 @@
   (alert "Deprecated error handling syntax found\n"
          " -- <https://bit.ly/2rCTrpa>\n"))
 
+(define (alert-typeset)
+  (alert "Deprecated typeset syntax found\n"
+         " -- <https://bit.ly/2rCTrpa>\n"))
+(define (alert-eval)
+  (alert "Deprecated eval syntax found\n"
+         " -- <https://bit.ly/2rCTrpa>\n"))
+(define (alert-let)
+  (alert "Deprecated let syntax found\n"
+         " -- <https://bit.ly/2rCTrpa>\n"))
+
 ;;; standard reading file
 
 (define (fsm-read port)
@@ -61,6 +71,8 @@
          (fsm-f-test port))
         ((#\s)
          (fsm-error-handling port 1))
+        ((#\t #\e #\l)
+         (fsm-expressions port 0 0 0)) 
         (else
          (when debug?
            (display ch))
@@ -222,6 +234,9 @@
 
 ;;; error handling, set commands
 
+(define set "set ")
+(define set-pair (cons "errexit " "nouset "))
+
 (define (fsm-error-handling port n)
   (let ((ch (read-char port))
         (ch-check (string-ref set n)))
@@ -233,9 +248,6 @@
          (fsm-error-handling port (+ n 1)))      
       (else 
         (fsm-read port))))))
-
-(define set "set ")
-(define set-pair (cons "errexit " "nouset "))
 
 (define (fsm-set-args port)
   (let ((ch (read-char port)))
@@ -262,8 +274,8 @@
 
 (define (fsm-set-args-end port n k)
   (let ((ch (read-char port))
-        (ch-1st-check (string-ref (car set-pair) n))
-        (ch-2nd-check (string-ref (cdr set-pair) k)))
+        (ch-1st (string-ref (car set-pair) n))
+        (ch-2nd (string-ref (cdr set-pair) k)))
     (unless (eof-object? ch)
       (cond
         ((eqv? ch #\x0020)
@@ -274,11 +286,42 @@
         ((= n 6)
          (set-handling)
          (fsm-read port))
-        ((eqv? ch ch-1st-check)
+        ((eqv? ch ch-1st)
          (fsm-set-args-end port (+ n 1) (+ k 1)))
-        ((eqv? ch ch-2nd-check)
+        ((eqv? ch ch-2nd)
          (fsm-set-args-end port (+ n 1) (+ k 1)))      
       (else 
+        (fsm-read port))))))
+
+;;; typeset, eval, let operators
+
+(define typeset "typeset ")
+(define let-expr "let ")
+(define eval-expr "eval ")
+
+(define (fsm-expressions port x y z)
+  (let ((ch (read-char port))
+        (ch-1nd (string-ref typeset (+ x 1)))
+        (ch-2nd (string-ref eval-expr (+ y 1)))
+        (ch-3nd (string-ref let-expr (+ z 1))))
+    (unless (eof-object? ch)
+      (cond
+        ((= z 2)
+         (alert-let)
+         (fsm-read port))
+        ((= y 3)
+         (alert-eval)
+         (fsm-read port))
+        ((= x 6)
+         (alert-typeset)
+         (fsm-read port))
+        ((eqv? ch ch-1nd)
+         (fsm-expressions port (+ x 1) y z))
+        ((eqv? ch ch-2nd)
+         (fsm-expressions port x (+ y 1) z))
+        ((eqv? ch ch-3nd)
+         (fsm-expressions port x y (+ z 1)))
+      (else
         (fsm-read port))))))
 
 ;;; Commands
