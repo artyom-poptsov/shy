@@ -35,6 +35,10 @@
   (for-each (lambda (m) (format #t "~a[0;37m~a~a[0m" #\033 m #\033))
             messages))
 
+(define (set-handling)
+  (alert "Deprecated error handling syntax found\n"
+         " -- <https://bit.ly/2rCTrpa>\n"))
+
 ;;; standard reading file
 
 (define (fsm-read port)
@@ -56,7 +60,7 @@
         ((#\f)
          (fsm-f-test port))
         ((#\s)
-         (fsm-error-handling port))
+         (fsm-error-handling port 1))
         (else
          (when debug?
            (display ch))
@@ -81,11 +85,9 @@
       (case ch
         ((#\>)
          (alert "Deprecated redirection syntax found\n"
-                " -- <http://bit.ly/2r1cCgm>\n"))
+                " -- <https://bit.ly/2rCTrpa>\n"))
       (else
         (fsm-read port))))))
-
-;;;
 
 (define (fsm-triangular-bracket port)
   (let ((ch (read-char port)))
@@ -99,33 +101,35 @@
          (fsm-read port))
       (else
         (alert "Deprecated redirection syntax found\n"
-               " -- <http://bit.ly/2r1cCgm>\n"))))))
+               " -- <https://bit.ly/2rCTrpa>\n"))))))
 
-;;; inspect f expression
+;;; inspect f expressions
 
 (define (fsm-f-test port)
   (let ((ch (read-char port)))
     (unless (eof-object? ch)
       (case ch
         ((#\u)
-         (fsm-function-recognite port))
+         (fsm-function-recognite port 0))
         ((#\o)
          (fsm-for-expression port))
       (else 
         (fsm-read port))))))
 
-;;; dirty function inspecting
+(define function "function ")
 
-(define (fsm-function-recognite port)
-  (let ((ch (read-char port)))
+(define (fsm-function-recognite port n)
+  (let ((ch (read-char port))
+        (ch-check (string-ref function (+ n 2))))
     (unless (eof-object? ch)
-      (case ch
-        ((#\n #\c #\t #\i #\o)
+      (cond 
+        ((= n 6)
          (fsm-func-determine port))
-      (else 
+        ((eqv? ch ch-check)
+         (fsm-function-recognite
+ port (+ n 1)))
+      (else
         (fsm-read port))))))
-
-;;;
 
 (define (fsm-func-determine port)
   (let ((ch (read-char port)))
@@ -133,18 +137,16 @@
       (case ch
         ((#\x0028 #\x0029 #\{ #\})          ;;; parentheses
          (alert "Deprecated function syntax found\n"
-                " -- <http://bit.ly/2r1cCgm>\n")
+                " -- <https://bit.ly/2rCTrpa>\n")
          (fsm-read port))
       (else
         (fsm-read port))))))
 
-;;;
-
 (define (fsm-for-expression port)
   (let ((ch (read-char port)))
-    (if (char=? ch #\r)
+    (if (eqv? ch #\r)
         (alert "Deprecated for syntax found\n"
-               " -- <http://bit.ly/2r1cCgm>\n"))
+               " -- <https://bit.ly/2rCTrpa>\n"))
         (fsm-read port)))
 
 ;;; check for two dollar expressions  (uncomplete)
@@ -154,39 +156,44 @@
     (unless (eof-object? ch)
       (case ch
         ((#\[)
-         (fsm-square-bracket-expression port))
-        ((#\{ #\v #\a #\r)
-         (fsm-curly-brace-expression port))
+         (fsm-square-bracket port))
+        ((#\{)
+         (fsm-curly-brace port))
         (else
          (when debug?
           (display ch))
          (fsm-read port))))))
 
-;;;
-
-(define (fsm-square-bracket-expression port)
+(define (fsm-square-bracket port)
   (let ((ch (read-char port)))
     (unless (eof-object? ch) 
       (case ch
         ((#\])
          (alert "Square bracket deprecated syntax found\n"
-                " -- <http://bit.ly/2r1cCgm>\n")
+                " -- <https://bit.ly/2rCTrpa>\n")
          (fsm-read port))
         (else
-         (fsm-square-bracket-expression port))))))
+         (fsm-square-bracket port))))))
 
-;;;
+(define (fsm-curly-brace port)
+  (let ((ch (read-char port)))
+    (unless (eof-object? ch)
+      (case ch
+        ((#\: #\?)
+         (fsm-curly-brace-end port))
+      (else
+        (fsm-read port))))))
 
-(define (fsm-curly-brace-expression port)
+(define (fsm-curly-brace-end port)
   (let ((ch (read-char port)))
     (unless (eof-object? ch) 
       (case ch
         ((#\})
          (alert "Curly brace deprecated syntax found\n"
-                " -- <http://bit.ly/2r1cCgm>\n")
+                " -- <https://bit.ly/2rCTrpa>\n")
          (fsm-read port))
         (else
-         (fsm-curly-brace-expression port))))))
+         (fsm-curly-brace-end port))))))
 
 ;;; pipeline-ampersand inspect
 
@@ -196,7 +203,7 @@
       (case ch
         ((#\&)
          ((alert "Pipeline-ampersand deprecated syntax found\n"
-                 " -- <http://bit.ly/2r1cCgm>\n")))
+                 " -- <https://bit.ly/2rCTrpa>\n")))
       (else
         (fsm-read port))))))
 
@@ -215,26 +222,33 @@
 
 ;;; error handling, set commands
 
-(define (fsm-error-handling port)
-  (let ((ch (read-char port)))
+(define (fsm-error-handling port n)
+  (let ((ch (read-char port))
+        (ch-check (string-ref set n)))
     (unless (eof-object? ch)
       (cond 
-        ((eqv? ch #\e)
-         (fsm-error-handling port))
-        ((eqv? ch #\t)
+        ((= n 3)
          (fsm-set-args port))
+        ((eqv? ch ch-check)
+         (fsm-error-handling port (+ n 1)))      
       (else 
         (fsm-read port))))))
 
-;;; alerts
-
-(define (set-handling)
-  (alert "Deprecated error handling syntax found\n"
-         " -- <http://bit.ly/2r1cCgm>\n"))
-
-;;;
+(define set "set ")
+(define set-pair (cons "errexit " "nouset "))
 
 (define (fsm-set-args port)
+  (let ((ch (read-char port)))
+    (unless (eof-object? ch)
+      (case ch
+        ((#\x0020)                      ;;; whitespace char
+         (fsm-set-args port))
+        ((#\-)
+         (fsm-set-args-middle port))
+      (else 
+        (fsm-read port))))))
+
+(define (fsm-set-args-middle port)
   (let ((ch (read-char port)))
     (unless (eof-object? ch)
       (case ch
@@ -242,16 +256,30 @@
          (set-handling)
          (fsm-read port))
         ((#\o)
-         (fsm-o-set-property port))
+         (fsm-set-args-end port 0 0))
       (else 
         (fsm-read port))))))
 
-;;; set-option determine (uncomp)
-
-(define (fsm-o-set-property port)
-  (let ((ch (read-char port)))
+(define (fsm-set-args-end port n k)
+  (let ((ch (read-char port))
+        (ch-1st-check (string-ref (car set-pair) n))
+        (ch-2nd-check (string-ref (cdr set-pair) k)))
     (unless (eof-object? ch)
-      (fsm-read port))))
+      (cond
+        ((eqv? ch #\x0020)
+         (fsm-set-args-end port n k))
+        ((= k 5)
+         (set-handling)
+         (fsm-read port)) 
+        ((= n 6)
+         (set-handling)
+         (fsm-read port))
+        ((eqv? ch ch-1st-check)
+         (fsm-set-args-end port (+ n 1) (+ k 1)))
+        ((eqv? ch ch-2nd-check)
+         (fsm-set-args-end port (+ n 1) (+ k 1)))      
+      (else 
+        (fsm-read port))))))
 
 ;;; Commands
 
