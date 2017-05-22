@@ -72,7 +72,7 @@
         ((#\s)
          (fsm-error-handling port 1))
         ((#\t #\e #\l)
-         (fsm-expressions port 0 0 0)) 
+         (fsm-expressions port 0 0 0))
         (else
          (when debug?
            (display ch))
@@ -103,7 +103,7 @@
 
 (define (fsm-triangular-bracket port)
   (let ((ch (read-char port)))
-    (unless (eof-object? ch)    
+    (unless (eof-object? ch)
       (case ch
         ((#\&)
          (fsm-read port))
@@ -125,7 +125,7 @@
          (fsm-function-recognite port 0))
         ((#\o)
          (fsm-for-expression port))
-        (else 
+        (else
          (fsm-read port))))))
 
 (define function "function ")
@@ -134,7 +134,7 @@
   (let ((ch (read-char port))
         (ch-check (string-ref function (+ n 2))))
     (unless (eof-object? ch)
-      (cond 
+      (cond
        ((= n 6)
         (fsm-func-determine port))
        ((eqv? ch ch-check)
@@ -178,7 +178,7 @@
 
 (define (fsm-square-bracket port)
   (let ((ch (read-char port)))
-    (unless (eof-object? ch) 
+    (unless (eof-object? ch)
       (case ch
         ((#\])
          (alert "Square bracket deprecated syntax found\n"
@@ -198,7 +198,7 @@
 
 (define (fsm-curly-brace-end port)
   (let ((ch (read-char port)))
-    (unless (eof-object? ch) 
+    (unless (eof-object? ch)
       (case ch
         ((#\})
          (alert "Curly brace deprecated syntax found\n"
@@ -211,7 +211,7 @@
 
 (define (pipeline-amp port)
   (let ((ch (read-char port)))
-    (unless (eof-object? ch) 
+    (unless (eof-object? ch)
       (case ch
         ((#\&)
          ((alert "Pipeline-ampersand deprecated syntax found\n"
@@ -241,12 +241,12 @@
   (let ((ch (read-char port))
         (ch-check (string-ref set n)))
     (unless (eof-object? ch)
-      (cond 
+      (cond
        ((= n 3)
         (fsm-set-args port))
        ((eqv? ch ch-check)
-        (fsm-error-handling port (+ n 1)))      
-       (else 
+        (fsm-error-handling port (+ n 1)))
+       (else
         (fsm-read port))))))
 
 (define (fsm-set-args port)
@@ -257,7 +257,7 @@
          (fsm-set-args port))
         ((#\-)
          (fsm-set-args-middle port))
-        (else 
+        (else
          (fsm-read port))))))
 
 (define (fsm-set-args-middle port)
@@ -269,7 +269,7 @@
          (fsm-read port))
         ((#\o)
          (fsm-set-args-end port 0 0))
-        (else 
+        (else
          (fsm-read port))))))
 
 (define (fsm-set-args-end port n k)
@@ -282,15 +282,15 @@
         (fsm-set-args-end port n k))
        ((= k 5)
         (set-handling)
-        (fsm-read port)) 
+        (fsm-read port))
        ((= n 6)
         (set-handling)
         (fsm-read port))
        ((eqv? ch ch-1st)
         (fsm-set-args-end port (+ n 1) (+ k 1)))
        ((eqv? ch ch-2nd)
-        (fsm-set-args-end port (+ n 1) (+ k 1)))      
-       (else 
+        (fsm-set-args-end port (+ n 1) (+ k 1)))
+       (else
         (fsm-read port))))))
 
 ;;; typeset, eval, let operators
