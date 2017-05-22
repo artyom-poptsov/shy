@@ -76,7 +76,7 @@
         ((#\l)
          (fsm-read-let port (string #\l)))
         ((#\e)
-         (fsm-expressions port 0 0 0))
+         (fsm-read-eval port (string #\e)))
         (else
          (when debug?
            (display ch))
@@ -327,30 +327,17 @@
      (else
       (fsm-read port)))))
 
-(define (fsm-expressions port x y z)
-  (let ((ch (read-char port))
-        (ch-1nd (string-ref typeset (+ x 1)))
-        (ch-2nd (string-ref eval-expr (+ y 1)))
-        (ch-3nd (string-ref let-expr (+ z 1))))
-    (unless (eof-object? ch)
-      (cond
-       ((= z 2)
-        (alert-let)
-        (fsm-read port))
-       ((= y 3)
-        (alert-eval)
-        (fsm-read port))
-       ((= x 6)
-        (alert-typeset)
-        (fsm-read port))
-       ((eqv? ch ch-1nd)
-        (fsm-expressions port (+ x 1) y z))
-       ((eqv? ch ch-2nd)
-        (fsm-expressions port x (+ y 1) z))
-       ((eqv? ch ch-3nd)
-        (fsm-expressions port x y (+ z 1)))
-       (else
-        (fsm-read port))))))
+(define (fsm-read-eval port buffer)
+  "Read data from a PORT, check for questionable 'eval' syntax."
+  (let ((ch (read-char port)))
+    (cond
+     ((= (string-length buffer) (string-length eval-expr))
+      (alert-eval)
+      (fsm-read port))
+     ((char=? ch (string-ref eval-expr (string-length buffer)))
+      (fsm-read-eval port (string-append buffer (string ch))))
+     (else
+      (fsm-read port)))))
 
 ;;; Commands
 
