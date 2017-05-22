@@ -43,7 +43,8 @@
   (alert "Deprecated typeset syntax found\n"
          " -- <https://bit.ly/2rCTrpa>\n"))
 (define (alert-eval)
-  (alert "Deprecated eval syntax found\n"
+  (alert "Questionable 'eval' syntax found.\n"
+         "Often code can be restructured to use better alternatives.\n"
          " -- <https://bit.ly/2rCTrpa>\n"))
 (define (alert-let)
   (alert "Deprecated let syntax found\n"
