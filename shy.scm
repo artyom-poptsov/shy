@@ -111,14 +111,20 @@
     (unless (eof-object? ch)
       (case ch
         ((#\&)
-         (fsm-read port))
-        ((#\f)
-         (fsm-triangular-bracket port))
+         (fsm-triangular-end port))
+        (else
+         (fsm-read port))))))
+
+(define (fsm-triangular-end port)
+  (let ((ch (read-char port)))
+    (unless (eof-object? ch)
+      (case ch
         ((#\1)
          (fsm-read port))
         (else
-         (alert "Deprecated redirection syntax found\n"
-                " -- <https://bit.ly/2rCTrpa>\n"))))))
+         (alert "\nDeprecated redirection syntax found\n"
+                " -- <https://bit.ly/2rCTrpa>\n")
+         (fsm-read port))))))
 
 ;;; inspect f expressions
 
@@ -162,9 +168,16 @@
 (define (fsm-for-expression port)
   (let ((ch (read-char port)))
     (if (eqv? ch #\r)
-        (alert "Deprecated for syntax found\n"
-               " -- <https://bit.ly/2rCTrpa>\n"))
-    (fsm-read port)))
+        (fsm-for-end port)
+        (fsm-read port))))
+
+(define (fsm-for-end port)
+  (let ((ch (read-char port)))
+    (unless (eof-object? ch)
+      (if (eqv? ch #\x003B)             ;;; semicolon char
+        (alert "\nDeprecated for syntax found\n"
+               " -- <https://bit.ly/2rCTrpa>\n")
+        (fsm-read port)))))
 
 ;;; check for two dollar expressions  (uncomplete)
 
