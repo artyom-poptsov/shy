@@ -73,9 +73,9 @@
          (fsm-error-handling port 1))
         ((#\t)
          (fsm-read-typeset port (string #\t)))
-        ((#\e)
-         (fsm-read-let port (string #\e)))
         ((#\l)
+         (fsm-read-let port (string #\l)))
+        ((#\e)
          (fsm-expressions port 0 0 0))
         (else
          (when debug?
