@@ -71,7 +71,9 @@
          (fsm-f-test port))
         ((#\s)
          (fsm-error-handling port 1))
-        ((#\t #\e #\l)
+        ((#\t)
+         (fsm-read-typeset port (string #\t)))
+        ((#\e #\l)
          (fsm-expressions port 0 0 0))
         (else
          (when debug?
@@ -298,6 +300,18 @@
 (define typeset "typeset ")
 (define let-expr "let ")
 (define eval-expr "eval ")
+
+(define (fsm-read-typeset port buffer)
+  "Read data from a PORT, check for deprecated 'typeset' syntax."
+  (let ((ch (read-char port)))
+    (cond
+     ((= (string-length buffer) (string-length typeset))
+      (alert-typeset)
+      (fsm-read port))
+     ((char=? ch (string-ref typeset (string-length buffer)))
+      (fsm-read-typeset port (string-append buffer (string ch))))
+     (else
+      (fsm-read port)))))
 
 (define (fsm-expressions port x y z)
   (let ((ch (read-char port))
