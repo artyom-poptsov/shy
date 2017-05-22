@@ -73,11 +73,11 @@
         ((#\s)
          (fsm-error-handling port 1))
         ((#\t)
-         (fsm-read-typeset port (string #\t)))
+         (fsm-read-typeset port))
         ((#\l)
-         (fsm-read-let port (string #\l)))
+         (fsm-read-let port))
         ((#\e)
-         (fsm-read-eval port (string #\e)))
+         (fsm-read-eval port))
         (else
          (when debug?
            (display ch))
@@ -304,41 +304,31 @@
 (define let-expr "let ")
 (define eval-expr "eval ")
 
-(define (fsm-read-typeset port buffer)
+(define (read-word port buffer expected-word handler)
+  "Read an EXPECTED-WORD from a PORT, call a HANDLER if a word is
+fully read."
+  (let ((ch (read-char port)))
+    (cond
+     ((= (string-length buffer) (string-length expected-word))
+      (handler)
+      (fsm-read port))
+     ((char=? ch (string-ref expected-word (string-length buffer)))
+      (read-word port (string-append buffer (string ch))
+                 expected-word handler))
+     (else
+      (fsm-read port)))))
+
+(define (fsm-read-typeset port)
   "Read data from a PORT, check for deprecated 'typeset' syntax."
-  (let ((ch (read-char port)))
-    (cond
-     ((= (string-length buffer) (string-length typeset))
-      (alert-typeset)
-      (fsm-read port))
-     ((char=? ch (string-ref typeset (string-length buffer)))
-      (fsm-read-typeset port (string-append buffer (string ch))))
-     (else
-      (fsm-read port)))))
+  (read-word port (string #\t) typeset alert-typeset))
 
-(define (fsm-read-let port buffer)
+(define (fsm-read-let port)
   "Read data from a PORT, check for deprecated 'let' syntax."
-  (let ((ch (read-char port)))
-    (cond
-     ((= (string-length buffer) (string-length let-expr))
-      (alert-let)
-      (fsm-read port))
-     ((char=? ch (string-ref let-expr (string-length buffer)))
-      (fsm-read-let port (string-append buffer (string ch))))
-     (else
-      (fsm-read port)))))
+  (read-word port (string #\l) let-expr alert-let))
 
-(define (fsm-read-eval port buffer)
+(define (fsm-read-eval port)
   "Read data from a PORT, check for questionable 'eval' syntax."
-  (let ((ch (read-char port)))
-    (cond
-     ((= (string-length buffer) (string-length eval-expr))
-      (alert-eval)
-      (fsm-read port))
-     ((char=? ch (string-ref eval-expr (string-length buffer)))
-      (fsm-read-eval port (string-append buffer (string ch))))
-     (else
-      (fsm-read port)))))
+  (read-word port (string #\e) eval-expr alert-eval))
 
 ;;; Commands
 
