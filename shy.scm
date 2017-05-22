@@ -73,7 +73,9 @@
          (fsm-error-handling port 1))
         ((#\t)
          (fsm-read-typeset port (string #\t)))
-        ((#\e #\l)
+        ((#\e)
+         (fsm-read-let port (string #\e)))
+        ((#\l)
          (fsm-expressions port 0 0 0))
         (else
          (when debug?
@@ -310,6 +312,18 @@
       (fsm-read port))
      ((char=? ch (string-ref typeset (string-length buffer)))
       (fsm-read-typeset port (string-append buffer (string ch))))
+     (else
+      (fsm-read port)))))
+
+(define (fsm-read-let port buffer)
+  "Read data from a PORT, check for deprecated 'let' syntax."
+  (let ((ch (read-char port)))
+    (cond
+     ((= (string-length buffer) (string-length let-expr))
+      (alert-let)
+      (fsm-read port))
+     ((char=? ch (string-ref let-expr (string-length buffer)))
+      (fsm-read-let port (string-append buffer (string ch))))
      (else
       (fsm-read port)))))
 
