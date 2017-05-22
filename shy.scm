@@ -351,6 +351,8 @@ Commands:
 ;;; Entry point
 
 (define (main args)
+  (when (< (length args) 2)
+    (print-help-and-exit))
   (let ((command (cadr args)))
     (cond
      ((or (string=? command "help") (string=? command "h"))
