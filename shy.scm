@@ -67,6 +67,7 @@
         ((#\|)
          (pipeline-amp port))
         ((#\`)
+         (display "`")
          (fsm-inspect-backticks port))
         ((#\f)
          (fsm-f-test port))
@@ -75,12 +76,13 @@
         ((#\t)
          (fsm-read-typeset port))
         ((#\l)
+
          (fsm-read-let port))
         ((#\e)
          (fsm-read-eval port))
         (else
-         (when debug?
-           (display ch))
+ ;;        (when debug?
+ ;;        (display ch))
          (fsm-read port))))))
 
 ;;; skip bash comments
@@ -101,7 +103,7 @@
     (unless (eof-object? ch)
       (case ch
         ((#\>)
-         (alert "Deprecated redirection syntax found\n"
+         (alert "\nDeprecated redirection syntax found\n"
                 " -- <https://bit.ly/2rCTrpa>\n"))
         (else
          (fsm-read port))))))
@@ -179,27 +181,27 @@
                " -- <https://bit.ly/2rCTrpa>\n")
         (fsm-read port)))))
 
-;;; check for two dollar expressions  (uncomplete)
+;;; check for two dollar expressions
 
 (define (fsm-inspect-dollar port)
   (let ((ch (read-char port)))
     (unless (eof-object? ch)
       (case ch
         ((#\[)
+         (display "$[")
          (fsm-square-bracket port))
         ((#\{)
          (fsm-curly-brace port))
         (else
-         (when debug?
-           (display ch))
          (fsm-read port))))))
 
 (define (fsm-square-bracket port)
   (let ((ch (read-char port)))
     (unless (eof-object? ch)
+      (display ch)
       (case ch
         ((#\])
-         (alert "Square bracket deprecated syntax found\n"
+         (alert "\nSquare bracket deprecated syntax found\n"
                 " -- <https://bit.ly/2rCTrpa>\n")
          (fsm-read port))
         (else
@@ -219,7 +221,8 @@
     (unless (eof-object? ch)
       (case ch
         ((#\})
-         (alert "Curly brace deprecated syntax found\n"
+         (display ch)
+         (alert "\nCurly brace deprecated syntax found\n"
                 " -- <https://bit.ly/2rCTrpa>\n")
          (fsm-read port))
         (else
@@ -232,8 +235,8 @@
     (unless (eof-object? ch)
       (case ch
         ((#\&)
-         ((alert "Pipeline-ampersand deprecated syntax found\n"
-                 " -- <https://bit.ly/2rCTrpa>\n")))
+         (alert "Pipeline-ampersand deprecated syntax found\n"
+                 " -- <https://bit.ly/2rCTrpa>\n"))
         (else
          (fsm-read port))))))
 
@@ -242,9 +245,10 @@
 (define (fsm-inspect-backticks port)
   (let ((ch (read-char port)))
     (unless (eof-object? ch)
+      (display ch)
       (case ch
         ((#\`)
-         (alert "Backticks found\n"
+         (alert "\nBackticks found\n"
                 " -- <http://bit.ly/2qG43Vl>\n")
          (fsm-read port))
         (else

@@ -1,0 +1,32 @@
+.TH man 8 "30 May 2018" "0.1.0" "shy man page"
+.SH NAME
+shy \- inspecting bash scripts 
+.SH SYNOPSIS
+shy [command][file]
+.SH DESCRIPTION
+GNU shy is a program that inspects bash files for issues like:
+-Deprecated syntax
+-Outdated syntax
+-Invalid syntax 
+.SH OPTIONS
+Enter the command then the file.
+.br
+-i, --inspect    Inspect the script for issues.
+.br
+-v, --version    Display shy version and exit.
+.br
+-h, --help       Describe command-line options and exit.
+.br
+-c               Print commentary.
+.br
+-C               Print copyright.
+.br
+-d               Print dependency tree of scripts that are sourced from the script.
+.SH SEE ALSO
+info shy 
+.SH BUGS
+No known bugs.
+.SH AUTHOR
+Artyom Poptsov <artyom-poptsom@gmail.com>,
+.br 
+Asyanin Mikhail <asyanworks@gmail.com>.
