@@ -36,7 +36,31 @@
         (alert "\nDeprecated for syntax found"
                " -- <https://bit.ly/2rCTrpa>\n"))
 
+(define (alert-no-shebang)
+  (alert "\nNo proper shebang found"
+         " -- <http://wiki.bash-hackers.org/scripting/newbie_traps>\n"))
+
 ;;; standard reading file
+
+(define (fsm-shebang-check-bang port count)
+  (let ((ch (read-char port)))
+    (case ch
+      ((#\!)
+       (fsm-read port count))
+      (else
+       (alert-no-shebang)
+       (unread-char ch port)
+       (fsm-read port count)))))
+
+(define (fsm-shebang-check port count)
+  (let ((ch (read-char port)))
+    (case ch
+      ((#\#)
+       (fsm-shebang-check-bang port count))
+      (else
+       (alert-no-shebang)
+       (unread-char ch port)
+       (fsm-read port count)))))
 
 (define (fsm-read port count)
   (let ((ch (read-char port)))
@@ -423,7 +447,7 @@ fully read."
 (define (inspect file)
   "Inspect a FILE."
   (let ((port (open-input-file file)))
-    (fsm-read port 1)))
+    (fsm-shebang-check port 1)))
 
 ;;; Help
 
