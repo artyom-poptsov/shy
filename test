@@ -1,0 +1,28 @@
+#!/bin/bash
+
+&>FILE
+>&FILE
+
+$[EXPRESSION]
+
+COMMAND |& COMMAND
+
+function NAME() COMPOUND-CMD
+
+function NAME { CMDS; }
+
+for x; { …;}
+
+`COMMANDS`
+
+set -e
+set -o errexit
+set -u
+set -o nounset
+
+${var?msg}
+${var:?msg}
+
+typeset
+let 'EXPR'
+eval
