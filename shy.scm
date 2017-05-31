@@ -2,7 +2,8 @@
 -e main -s
 !#
 
-(use-modules (ice-9 unicode))
+(use-modules (ice-9 unicode)
+             (ice-9 getopt-long))
 
 ;;; Commentary:
 
@@ -465,21 +466,31 @@ There is NO WARRANTY, to the extent permitted by law.\n")
 
 ;;; Entry point
 
+(define %option-spec
+  '((help       (single-char #\h) (value #f))
+    (version    (single-char #\v) (value #f))
+    (commentary (single-char #\c) (value #f))
+    (deps       (single-char #\d) (value #f))
+    (inspect    (single-char #\i) (value #f))))
+
 (define (main args)
-  (when (< (length args) 2)
-    (print-help-and-exit))
-  (let ((command (cadr args)))
-    (display (caddr args))
+  (let* ((options            (getopt-long args %option-spec))
+         (help-needed?       (option-ref options 'help #f))
+         (version-needed?    (option-ref options 'version #f))
+         (commentary-needed? (option-ref options 'commentary #f))
+         (deps-needed?       (option-ref options 'deps #f))
+         (inspect?           (option-ref options 'inspect #f))
+         (args               (option-ref options '() #f)))
     (cond
-     ((or (string=? command "--help") (string=? command "-h"))
+     ((or (zero? (length args)) help-needed?)
       (print-help-and-exit))
-     ((or (string=? command "--version") (string=? command "-v"))
+     (version-needed?
       (print-version-and-exit))
-     ((or (string=? command "--commentary") (string=? command "-c"))
+     (commentary-needed?
       (print-comments-and-exit))
-     ((or (string=? command "--deps") (string=? command "-d"))
+     (deps-needed?
       (print-deps-and-exit))
-     ((or (string=? command "--inspect") (string=? command "-i"))
-           (inspect (caddr args))))))
+     (inspect?
+      (inspect (car args))))))
 
 ;;; shy.scm ends here.
