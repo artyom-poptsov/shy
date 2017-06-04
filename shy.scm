@@ -7,7 +7,72 @@
 
 ;;; Commentary:
 
-;; TODO:
+;; Types of deprecated syntax
+
+(define redirection-syntax
+  "Syntax: &>FILE and >&FILE
+Replacement: >FILE 2>&1.
+This redirection syntax is short for >FILE 2>&1 and originates in the C Shell.\n\n")
+
+(define square-brackets-syntax
+  "Syntax: $[EXPRESSION]
+Replacement: $((EXPRESSION)).
+This undocumented syntax is completely replaced by the POSIX-conforming arithmetic expansion $((EXPRESSION)). It is unimplemented almost everywhere except Bash and Zsh.\n\n")
+
+(define pipeline-ampersand-syntax
+  "Syntax: COMMAND |& COMMAND
+Replacement: COMMAND 2>&1 | COMMAND.
+This is an alternate pipeline operator derived from Zsh. It conflicts with the list operator used for coprocess creation in most Korn shells.\n\n")
+
+(define function-definite-parentheses-syntax
+  "Syntax: function NAME() COMPOUND-CMD
+Replacement: NAME() COMPOUND-CMD.
+This is an amalgamation between the Korn and POSIX style function definitions - using both the function keyword and parentheses. It is not specified by POSIX.\n\n")
+
+(define function-definite-curly-brackets-syntax
+  "Syntax: function NAME { CMDS; }
+Replacement: NAME() COMPOUND-CMD.
+Bash treats all function styles the same, but this is unusual. function has some preferable characteristics in many ksh variants, making it more portable for scripts that use non-POSIX extensions by some measures.\n\n")
+
+(define for-syntax
+  "Syntax: for x; { …;}
+Replacement: do, done, in, esac, etc.
+This undocumented syntax replaces the do and done reserved words with braces.\n\n")
+
+(define backticks-syntax
+  "Syntax: `COMMANDS`
+Replacement: $(COMMANDS).
+Backtick command substitutions require special escaping when nested, and examples found in the wild are improperly quoted more often than not.\n\n")
+
+(define error-handling-first-syntax
+  "Syntax: set -e, set -o errexit
+Replacement: Proper control flow and error handling.
+set -e causes untested non-zero exit statuses to be fatal. It is a debugging feature intended for use only during development and should not be used in production code, especially init scripts and other high-availability scripts.\n\n")
+
+(define error-handling-second-syntax
+  "Syntax: set -u or set -o nounset
+Replacement: Proper control flow and error handling.
+set -u causes attempts to expand unset variables or parameters as fatal errors. Like set -e, it bypasses control flow and exits immediately from the current shell environment.\n\n")
+
+(define var-syntax
+  "Syntax: ${var?msg} or ${var:?msg}
+Replacement: Proper control flow and error handling.
+Like set -u, this expansion causes a fatal error which immediately exits the current shell environment if the given parameter is unset or is null.\n\n")
+
+(define typeset-syntax
+  "Syntax: typeset
+Replacement: declare, local, export, readonly.
+The issue is complicated by Dash and the Debian policy requirement for a local builting, which is itself not entirely compatible with Bash and other shells.\n\n")
+
+(define lets-syntax
+  "Syntax: let 'EXPR'
+Replacement: ((EXPR)) or [ $((EXPR)) -ne 0 ].
+The compound variant is preferable because it doesn't take regular arguments for wordsplitting and globbing, which makes it safer and clearer.\n\n")
+
+(define eval-syntax
+  "Syntax: eval
+Replacement: Depends. Often code can be restructured to use better alternatives.
+eval is unusual in that it is less frequently appropriate in more feature-rich shells than in more minimal shells like Dash, where it is used to compensate for more limitations.\n")
 
 ;;; Code:
 
@@ -453,7 +518,7 @@ fully read."
 
 (define (print-help-and-exit)
   (display "\
-Usage: shy command [args]
+Usage: shy [command] [file]
 
 Commands:
   -h, --help        Print this message and exit.
@@ -485,7 +550,21 @@ There is NO WARRANTY, to the extent permitted by law.\n")
 ;;; Comments
 
 (define (print-comments-and-exit)
-  (display "comments")
+  (display "Comments for each deprecated syntax:\n\n")
+  (display redirection-syntax)
+  (display square-brackets-syntax)
+  (display pipeline-ampersand-syntax)
+  (display function-definite-parentheses-syntax)
+  (display function-definite-curly-brackets-syntax)
+  (display for-syntax)
+  (display backticks-syntax)
+  (display error-handling-first-syntax)
+  (display error-handling-second-syntax)
+  (display var-syntax)
+  (display typeset-syntax)
+  (display lets-syntax)
+  (display eval-syntax)
+  (display "\nMore information on <http://wiki.bash-hackers.org/scripting/obsolete>\n")
   (exit))
 
 ;;; Entry point
