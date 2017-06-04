@@ -1,59 +1,58 @@
-* shy
+# Shy
   A handy tool for inspecting bash scripts.
 
   The inspiration for such a tool partly comes from =guild= program
-  that is shipped with [[https://www.gnu.org/software/guile/][GNU Guile]].
+  that is shipped with [GNU Guile](https://www.gnu.org/software/guile/).
 
-** Usage
+## Usage
 
-*** Print help
+### Print help
 
     Print reference of program:
-#+BEGIN_EXAMPLE
+```
 $ shy --help
 $ shy -h                     # Shorthand
 $ shy                        # Without command
-#+END_EXAMPLE
+```
 
-*** Inspect a script
+### Inspect a script
 
     Inspect a script for potentially problematic and/or obsolete
     things:
-#+BEGIN_EXAMPLE
-$ shy --inspect <script>
-$ shy -i <script>            # Shorthand
-#+END_EXAMPLE
+```
+$ shy --inspect <file>
+$ shy -i <file>            # Shorthand
+```
 
-*** Print commentary of deprecated syntax
+### Print commentary of deprecated syntax
     
     You can print this section as follows:
-#+BEGIN_EXAMPLE
-$ shy --commentary <script>
-$ shy -c <script>            # Shorthand
-#+END_EXAMPLE
+```
+$ shy --commentary <file>
+$ shy -c <file>            # Shorthand
+```
 
-*** Print dependencies
+### Print dependencies
 
     Print script dependencies, that is, scripts that are sourced in
     the given script:
-#+BEGIN_EXAMPLE
-$ shy --deps <script>
-$ shy -d <script>            # Shorthand
-#+END_EXAMPLE
+```
+$ shy --deps <file>
+$ shy -d <file>            # Shorthand
+```
 
-*** Print version
+### Print version
 
     Print version of program:
-#+BEGIN_EXAMPLE
+```
 $ shy --version
 $ shy -v                     # Shorthand
-#+END_EXAMPLE
+```
 
-*** Documentation
+### Documentation
 
     Read the documentation:
-#+BEGIN_EXAMPLE
+```
 $ man shy
 $ info shy
-#+END_EXAMPLE
-
+```
