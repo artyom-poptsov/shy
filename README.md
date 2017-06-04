@@ -9,49 +9,53 @@
 ### Print help
 
     Print reference of program:
+
 ```
 $ shy --help
-$ shy -h                     # Shorthand
-$ shy                        # Without command
+$ shy -h                   # Shorthand
+$ shy                      # Without command
 ```
 
 ### Inspect a script
 
-    Inspect a script for potentially problematic and/or obsolete
-    things:
+    Inspect a script for potentially problematic and/or obsolete things:
+
 ```
-$ shy --inspect <file>
-$ shy -i <file>            # Shorthand
+$ shy --inspect [file]
+$ shy -i [file]            # Shorthand
 ```
 
 ### Print commentary of deprecated syntax
     
     You can print this section as follows:
+
 ```
-$ shy --commentary <file>
-$ shy -c <file>            # Shorthand
+$ shy --commentary [file]
+$ shy -c [file]            # Shorthand
 ```
 
 ### Print dependencies
 
-    Print script dependencies, that is, scripts that are sourced in
-    the given script:
+    Print script dependencies, that is, scripts that are sourced in the given script:
+
 ```
-$ shy --deps <file>
-$ shy -d <file>            # Shorthand
+$ shy --deps [file]
+$ shy -d [file]            # Shorthand
 ```
 
 ### Print version
 
     Print version of program:
+
 ```
 $ shy --version
-$ shy -v                     # Shorthand
+$ shy -v                   # Shorthand
 ```
 
 ### Documentation
 
     Read the documentation:
+
 ```
 $ man shy
 $ info shy
