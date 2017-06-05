@@ -2,10 +2,37 @@
 -e main -s
 !#
 
+;;; shy.scm -- A (hopefully) handy tool for inspecting bash scripts.
+
+;; Copyright (C) 2016, 2017 Artyom V. Poptsov <poptsov.artyom@gmail.com>
+;; Copyright (C) 2017 Asyanin Mikhail <creative.doomsday@gmail.com>
+;;
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; The program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with the program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+;;; Commentary:
+
+;; A handy tool for inspecting bash scripts.
+
+;; The inspiration for such a tool partly comes from 'guild' program
+;; that is shipped with GNU Guile.
+
+
+;;; Code:
+
 (use-modules (ice-9 unicode)
              (ice-9 getopt-long))
-
-;;; Commentary:
 
 ;; Types of deprecated syntax
 
