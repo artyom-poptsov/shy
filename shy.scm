@@ -36,7 +36,7 @@
 
 ;; Types of deprecated syntax
 
-(define redirection-syntax
+(define %redirection-syntax
   "\
 Syntax:      &>FILE and >&FILE
 Replacement: >FILE 2>&1.
@@ -45,7 +45,7 @@ This redirection syntax is short for >FILE 2>&1 and originates in the
 C Shell.
 ")
 
-(define square-brackets-syntax
+(define %square-brackets-syntax
   "\
 Syntax:      $[EXPRESSION]
 Replacement: $((EXPRESSION)).
@@ -55,7 +55,7 @@ POSIX-conforming arithmetic expansion $((EXPRESSION)). It is
 unimplemented almost everywhere except Bash and Zsh.
 ")
 
-(define pipeline-ampersand-syntax
+(define %pipeline-ampersand-syntax
   "\
 Syntax:      COMMAND |& COMMAND
 Replacement: COMMAND 2>&1 | COMMAND.
@@ -65,7 +65,7 @@ with the list operator used for coprocess creation in most Korn
 shells.
 ")
 
-(define function-definite-parentheses-syntax
+(define %function-definite-parentheses-syntax
   "\
 Syntax:      function NAME() COMPOUND-CMD
 Replacement: NAME() COMPOUND-CMD.
@@ -75,7 +75,7 @@ definitions - using both the function keyword and parentheses. It is
 not specified by POSIX.
 ")
 
-(define function-definite-curly-brackets-syntax
+(define %function-definite-curly-brackets-syntax
   "\
 Syntax:      function NAME { CMDS; }
 Replacement: NAME() COMPOUND-CMD.
@@ -86,7 +86,7 @@ variants, making it more portable for scripts that use non-POSIX
 extensions by some measures.
 ")
 
-(define for-syntax
+(define %for-syntax
   "\
 Syntax:      for x; { …;}
 Replacement: do, done, in, esac, etc.
@@ -95,7 +95,7 @@ This undocumented syntax replaces the do and done reserved words with
 braces.
 ")
 
-(define backticks-syntax
+(define %backticks-syntax
   "\
 Syntax: `COMMANDS`
 Replacement: $(COMMANDS).
@@ -105,7 +105,7 @@ and examples found in the wild are improperly quoted more often than
 not.
 ")
 
-(define error-handling-first-syntax
+(define %error-handling-first-syntax
   "\
 Syntax:      set -e, set -o errexit
 Replacement: Proper control flow and error handling.
@@ -116,7 +116,7 @@ not be used in production code, especially init scripts and other
 high-availability scripts.
 ")
 
-(define error-handling-second-syntax
+(define %error-handling-second-syntax
   "\
 Syntax:      set -u or set -o nounset
 Replacement: Proper control flow and error handling.
@@ -126,7 +126,7 @@ fatal errors. Like 'set -e', it bypasses control flow and exits
 immediately from the current shell environment.
 ")
 
-(define var-syntax
+(define %var-syntax
   "\
 Syntax:      ${var?msg} or ${var:?msg}
 Replacement: Proper control flow and error handling.
@@ -136,7 +136,7 @@ exits the current shell environment if the given parameter is unset or
 is null.
 ")
 
-(define typeset-syntax
+(define %typeset-syntax
   "\
 Syntax:      typeset
 Replacement: declare, local, export, readonly.
@@ -146,7 +146,7 @@ a local builting, which is itself not entirely compatible with Bash
 and other shells.
 ")
 
-(define lets-syntax
+(define %lets-syntax
   "\
 Syntax:      let 'EXPR'
 Replacement: ((EXPR)) or [ $((EXPR)) -ne 0 ].
@@ -156,7 +156,7 @@ arguments for wordsplitting and globbing, which makes it safer and
 clearer.
 ")
 
-(define eval-syntax
+(define %eval-syntax
   "
 Syntax: eval
 Replacement: Depends. Often code can be restructured to use better alternatives.
@@ -643,19 +643,19 @@ There is NO WARRANTY, to the extent permitted by law.\n")
 
 (define (print-comments-and-exit)
   (display "Comments for each deprecated syntax:\n\n")
-  (display redirection-syntax)
-  (display square-brackets-syntax)
-  (display pipeline-ampersand-syntax)
-  (display function-definite-parentheses-syntax)
-  (display function-definite-curly-brackets-syntax)
-  (display for-syntax)
-  (display backticks-syntax)
-  (display error-handling-first-syntax)
-  (display error-handling-second-syntax)
-  (display var-syntax)
-  (display typeset-syntax)
-  (display lets-syntax)
-  (display eval-syntax)
+  (display %redirection-syntax)
+  (display %square-brackets-syntax)
+  (display %pipeline-ampersand-syntax)
+  (display %function-definite-parentheses-syntax)
+  (display %function-definite-curly-brackets-syntax)
+  (display %for-syntax)
+  (display %backticks-syntax)
+  (display %error-handling-first-syntax)
+  (display %error-handling-second-syntax)
+  (display %var-syntax)
+  (display %typeset-syntax)
+  (display %lets-syntax)
+  (display %eval-syntax)
   (display "\nMore information on <http://wiki.bash-hackers.org/scripting/obsolete>\n")
   (exit))
 
