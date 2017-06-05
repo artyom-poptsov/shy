@@ -669,7 +669,7 @@ There is NO WARRANTY, to the extent permitted by law.\n")
          (inspect?           (option-ref options 'inspect #f))
          (args               (option-ref options '() #f)))
     (cond
-     ((or (zero? (length args)) help-needed?)
+     (help-needed?
       (print-help-and-exit))
      (version-needed?
       (print-version-and-exit))
@@ -678,6 +678,8 @@ There is NO WARRANTY, to the extent permitted by law.\n")
     ;; (deps-needed?
    ;;   (print-deps-and-exit (car args) "" "" 1))
      (inspect?
-      (inspect (car args))))))
+      (inspect (car args)))
+     ((zero? (length args))
+      (print-help-and-exit)))))
 
 ;;; shy.scm ends here.
