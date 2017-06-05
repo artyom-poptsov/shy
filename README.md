@@ -1,4 +1,5 @@
 # Shy
+
   A handy tool for inspecting bash scripts.
 
   The inspiration for such a tool partly comes from =guild= program
@@ -32,15 +33,6 @@ $ shy -i [file]            # Shorthand
 ```
 $ shy --commentary [file]
 $ shy -c [file]            # Shorthand
-```
-
-### Print dependencies
-
-    Print script dependencies, that is, scripts that are sourced in the given script:
-
-```
-$ shy --deps [file]
-$ shy -d [file]            # Shorthand
 ```
 
 ### Print version

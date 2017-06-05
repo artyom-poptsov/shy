@@ -1,4 +1,4 @@
-.TH man 8 "30 May 2018" "0.1.0" "shy man page"
+.TH man 8 "30 May 2018" "0.1" "shy man page"
 .SH NAME
 shy \- inspecting bash scripts 
 .SH SYNOPSIS
@@ -21,8 +21,6 @@ Enter the command then the file.
 -h, --help          Describe command-line options and exit.
 .br
 -c, --commentary    Print commentary and exit.
-.br
--d, --deps          Print dependency tree of scripts that are sourced from the script.
 .SH SEE ALSO
 info shy 
 .SH BUGS
@@ -30,4 +28,4 @@ No known bugs.
 .SH AUTHORS
 Artyom Poptsov <artyom-poptsom@gmail.com>,
 .br 
-Asyanin Mikhail <asyanworks@gmail.com>.
+Asyanin Mikhail <creative.doomsday@gmail.com>.

@@ -20,7 +20,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with the program.  If not, see <http://www.gnu.org/licenses/>.
 
-
+
 ;;; Commentary:
 
 ;; A handy tool for inspecting bash scripts.
@@ -28,7 +28,7 @@
 ;; The inspiration for such a tool partly comes from 'guild' program
 ;; that is shipped with GNU Guile.
 
-
+
 ;;; Code:
 
 (use-modules (ice-9 unicode)
@@ -616,7 +616,6 @@ Commands:
   -h, --help        Print this message and exit.
   -i, --inspect     Inspect the script for issues.
   -c, --commentary  Print commentary.
-  -d, --deps        Print dependency tree of scripts.
   -v, --version     Print version and exit.
 ")
   (exit))
@@ -631,85 +630,6 @@ License LGPLv3+: GNU LGPL 3 or later <http://gnu.org/licenses/lgpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.\n")
   (exit))
-
-;;; Dependency tree
-
-(define source "source")
-
-(define (fsm-deps-check port file count)
-  (let ((ch (read-char port)))
-    (unless (eof-object? ch)
-      (case ch
-        ((#\#)
-         (fsm-skip-comments port file count))
-        ((#\.)
-         (fsm-dot-check port file count))
-        ((#\s)
-         (fsm-source-check port file (string #\s) 0 count))
-        ((#\newline)
-         (fsm-deps-check port file (+ count 1)))
-        (else
-         (fsm-deps-check port file count))))))
-
-(define (fsm-skip-comments port file count)
-  (let ((ch (read-char port)))
-    (unless (eof-object? ch)
-      (case ch
-        ((#\newline)
-         (fsm-deps-check port file (+ 1 count)))
-        (else
-         (fsm-skip-comments port file count))))))
-
-(define (fsm-dot-check port file count)
-  (let ((ch (read-char port)))
-    (unless (eof-object? ch)
-      (case ch
-        ((#\newline)
-         (fsm-deps-check port file (+ count 1)))
-        ((#\/)                        ;;; slash character
-         (fsm-get-file-name port file "" count))
-      (else
-        (fsm-deps-check port file count))))))
-
-(define (fsm-source-check port file check k count)
-  (let ((ch (read-char port)))
-    (unless (eof-object? ch)
-      (cond
-        ((eqv? ch #\newline)
-         (fsm-deps-check port file (+ count 1)))
-        ((eqv? ch #\0020)
-         (fsm-source-check port file check k count))
-        ((= k (string-length source))
-         (display k)
-         (fsm-get-file-name port file (string #\null) count))
-        ((eqv? ch (string-ref source k))
-         (fsm-source-check port file check (+ k 1) count))
-      (else
-        (fsm-deps-check port file count))))))
-
-(define (fsm-get-file-name port file file-name count)
-  (let ((ch (read-char port)))
-    (unless (eof-object? ch)
-      (case ch 
-        ((#\newline)
-         (fsm-deps-check port file (+ count 1)))
-        ((#\x0020)
-         (display "In line ") (display count) (display " -- ")
-         (display "script found: ") (display file-name) (newline)       
-         (print-deps-and-exit file-name file port))
-      (else 
-        (fsm-get-file-name port file
-         (string-append file-name (string ch)) count)))))) 
-
-(define (print-deps-and-exit file last-name last-port)
-  (let ((port (open-input-file file)))
-    (cond 
-      ((equal? file last-name)
-       (display file) (display "===") (display last-name))
-      ((equal? port last-name)
-       (display file) (display "===") (display last-name))
-    (else
-      (fsm-deps-check port file 1)))))
 
 ;; Comments
 
@@ -737,7 +657,7 @@ There is NO WARRANTY, to the extent permitted by law.\n")
   '((help       (single-char #\h) (value #f))
     (version    (single-char #\v) (value #f))
     (commentary (single-char #\c) (value #f))
-    (deps       (single-char #\d) (value #f))
+;;    (deps       (single-char #\d) (value #f))
     (inspect    (single-char #\i) (value #f))))
 
 (define (main args)
@@ -745,7 +665,7 @@ There is NO WARRANTY, to the extent permitted by law.\n")
          (help-needed?       (option-ref options 'help #f))
          (version-needed?    (option-ref options 'version #f))
          (commentary-needed? (option-ref options 'commentary #f))
-         (deps-needed?       (option-ref options 'deps #f))
+      ;;   (deps-needed?       (option-ref options 'deps #f))
          (inspect?           (option-ref options 'inspect #f))
          (args               (option-ref options '() #f)))
     (cond
@@ -755,8 +675,8 @@ There is NO WARRANTY, to the extent permitted by law.\n")
       (print-version-and-exit))
      (commentary-needed?
       (print-comments-and-exit))
-     (deps-needed?
-      (print-deps-and-exit (car args) "" ""))
+    ;; (deps-needed?
+   ;;   (print-deps-and-exit (car args) "" "" 1))
      (inspect?
       (inspect (car args))))))
 
