@@ -1,4 +1,4 @@
-dnl   configuration script for Guile-SSH
+dnl   configuration script for Shy
 dnl   Process this file with autoconf to produce configure.
 dnl
 
@@ -72,7 +72,7 @@ if test "x$guilesitedir" = "x"; then
 fi
 AC_SUBST([guilesitedir])
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile doc/Makefile])
 
 # Generate a Makefile, based on the results.
 AC_OUTPUT
