@@ -170,6 +170,11 @@ used to compensate for more limitations.
 
 (define debug? #t)
 
+(define (log-debug msg . fmt)
+  "Print a formatted debug message to the current error port."
+  (when debug?
+    (apply format (current-error-port) msg fmt)))
+
 ;;; Alert messages
 
 (define (alert . messages)
@@ -701,15 +706,97 @@ There is NO WARRANTY, to the extent permitted by law.\n")
         (fsm-get-file-name port file
          (string-append file-name (string ch)) count)))))) 
 
-(define (print-deps-and-exit file last-name last-port)
+
+(define (fsm-deps-read-source-file-name port)
+
+  (define (skip-spaces)
+    (let ((ch (read-char port)))
+      (unless (eof-object? ch)
+        (cond
+         ((char-set-contains? char-set:blank ch)
+          (skip-spaces))
+         (else
+          (read-source-file-name (string ch)))))))
+
+  (define (read-source-file-name name)
+    (let ((ch (read-char port)))
+      (unless (eof-object? ch)
+        (case ch
+          ((#\newline)
+           (format #t "[fsm-deps-read-source-file-name]: name: ~a~%"
+                   name)
+           (print-deps-and-exit name)
+           (fsm-deps-search port))
+          (else
+           (read-source-file-name (string-append name (string ch))))))))
+
+  (skip-spaces))
+
+(define (fsm-deps-read-source-keyword port)
+
+  (define (read-source-keyword buffer)
+    (let ((ch (read-char port)))
+      (unless (eof-object? ch)
+        (cond
+         ((char-set-contains? char-set:blank ch)
+          (log-debug "[fsm-deps-read-source-keyword]: keyword: ~a~%"
+                     buffer)
+          (if (string=? buffer "source")
+              (fsm-deps-read-source-file-name port)
+              (fsm-deps-search port)))
+         (else
+          (read-source-keyword (string-append buffer
+                                              (string ch))))))))
+
+  (read-source-keyword "s"))
+
+(define (fsm-deps-read-dot-keyword port)
+    (let ((ch (read-char port)))
+    (unless (eof-object? ch)
+      #f)))
+
+(define (fsm-deps-search port)
+
+  (define (deps-search)
+    (log-debug "[fsm-deps-search: skip-spaces]~%")
+    (let ((ch (read-char port)))
+      (unless (eof-object? ch)
+        (cond
+         ((char-set-contains? char-set:blank ch)
+          (deps-search))
+         (else
+          (check-keyword ch))))))
+
+  (define (skip-keyword)
+    (log-debug "[fsm-deps-search: skip-keyword]~%")
+    (let ((ch (read-char port)))
+      (unless (eof-object? ch)
+        (cond
+         ((char-set-contains? char-set:blank ch)
+          (deps-search))
+         (else
+          (skip-keyword))))))
+
+  (define (check-keyword first-char)
+    (log-debug "[fsm-deps-search: check-keyword]~%")
+    (case first-char
+      ((#\s)
+       (log-debug "[fsm-deps-search] -> [fsm-deps-read-source-keyword]~%")
+       (fsm-deps-read-source-keyword port))
+      ((#\.)
+       (log-debug "[fsm-deps-search] -> [fsm-deps-read-dot-keyword]~%")
+       (fsm-deps-read-dot-keyword port))
+      (else
+       (skip-keyword))))
+
+  (deps-search))
+
+(define (print-deps-and-exit file)
+  (log-debug "print-deps-and-exit: file: ~a~%"
+             file)
   (let ((port (open-input-file file)))
-    (cond 
-      ((equal? file last-name)
-       (display file) (display "===") (display last-name))
-      ((equal? port last-name)
-       (display file) (display "===") (display last-name))
-    (else
-      (fsm-deps-check port file 1)))))
+    (log-debug "-> [fsm-deps-search]~%")
+    (fsm-deps-search port)))
 
 ;; Comments
 
@@ -756,7 +843,7 @@ There is NO WARRANTY, to the extent permitted by law.\n")
      (commentary-needed?
       (print-comments-and-exit))
      (deps-needed?
-      (print-deps-and-exit (car args) "" ""))
+      (print-deps-and-exit (car args)))
      (inspect?
       (inspect (car args)))
      ((zero? (length args))
